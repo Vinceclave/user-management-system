@@ -8,9 +8,9 @@ import { MustMatch } from '@app/_helpers';
 
 @Component({ templateUrl: 'add-edit.component.html' })
 export class AddEditComponent implements OnInit {
-    form: UntypedFormGroup;
-    id: string;
-    isAddMode: boolean;
+    form!: UntypedFormGroup;
+    id!: string;
+    isAddMode!: boolean;
     loading = false;
     submitted = false;
 
@@ -42,7 +42,7 @@ export class AddEditComponent implements OnInit {
         if (!this.isAddMode) {
             this.accountService.getById(this.id)
                 .pipe(first())
-                .subscribe(x => this.form.patchValue(x));
+                .subscribe((x: { [key: string]: any; }) => this.form.patchValue(x));
         }
     }
 
@@ -74,7 +74,7 @@ export class AddEditComponent implements OnInit {
                     this.alertService.success('Account added successfully', { keepAfterRouteChange: true });
                     this.router.navigate(['/accounts'], { relativeTo: this.route });
                 },
-                error: error => {
+                error: (error: any) => {
                     this.alertService.error(error);
                     this.loading = false;
                 }
@@ -89,7 +89,7 @@ export class AddEditComponent implements OnInit {
                     this.alertService.success('Update successful', { keepAfterRouteChange: true });
                     this.router.navigate(['/accounts'], { relativeTo: this.route });
                 },
-                error: error => {
+                error: (error: any) => {
                     this.alertService.error(error);
                     this.loading = false;
                 }
