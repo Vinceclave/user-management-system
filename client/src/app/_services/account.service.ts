@@ -52,7 +52,14 @@ export class AccountService {
     }
     
     register(account: Account) {
-        return this.http.post(`${baseUrl}/register`, account);
+        console.log(account)
+        return this.http.post(`${baseUrl}/register`, account, { withCredentials: true })
+            .pipe(map((account: any) => {
+                // auto login after registration
+                this.accountSubject.next(account);
+                this.startRefreshTokenTimer();
+                return account;
+            }));
     }
     
     verifyEmail(token: string) {
