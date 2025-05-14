@@ -5,10 +5,11 @@ import { first } from 'rxjs/operators';
 
 import { AccountService, AlertService } from '@app/_services';
 import { MustMatch } from '@app/_helpers';
+import { Account } from '@app/_models';
 
 @Component({ templateUrl: 'update.component.html' })
 export class UpdateComponent implements OnInit {
-    account = this.accountService.accountValue;
+    account: Account;
     form: UntypedFormGroup;
     loading = false;
     submitted = false;
@@ -23,6 +24,7 @@ export class UpdateComponent implements OnInit {
     ) { }
 
     ngOnInit() {
+        this.account = this.accountService.accountValue;
         this.form = this.formBuilder.group({
             title: [this.account.title, Validators.required],
             firstName: [this.account.firstName, Validators.required],

@@ -10,6 +10,19 @@ import { Role } from '@app/_models';
 const accountsKey = 'angular-10-signup-verification-boilerplate-accounts';
 let accounts = JSON.parse(localStorage.getItem(accountsKey)) || [];
 
+// arrays in local storage for other entities
+const departmentsKey = 'departments';
+let departments = JSON.parse(localStorage.getItem(departmentsKey)) || [];
+
+const employeesKey = 'employees';
+let employees = JSON.parse(localStorage.getItem(employeesKey)) || [];
+
+const workflowsKey = 'workflows';
+let workflows = JSON.parse(localStorage.getItem(workflowsKey)) || [];
+
+const requestsKey = 'requests';
+let requests = JSON.parse(localStorage.getItem(requestsKey)) || [];
+
 @Injectable()
 export class FakeBackendInterceptor implements HttpInterceptor {
     constructor(private alertService: AlertService) { }
@@ -22,6 +35,7 @@ export class FakeBackendInterceptor implements HttpInterceptor {
 
         function handleRoute() {
             switch (true) {
+                // Account routes
                 case url.endsWith('/accounts/authenticate') && method === 'POST':
                     return authenticate();
                 case url.endsWith('/accounts/refresh-token') && method === 'POST':
@@ -48,6 +62,67 @@ export class FakeBackendInterceptor implements HttpInterceptor {
                     return updateAccount();
                 case url.match(/\/accounts\/\d+$/) && method === 'DELETE':
                     return deleteAccount();
+
+                // Department routes
+                case url.endsWith('/departments') && method === 'GET':
+                    return getDepartments();
+                case url.match(/\/departments\/\d+$/) && method === 'GET':
+                    return getDepartmentById();
+                case url.endsWith('/departments') && method === 'POST':
+                    return createDepartment();
+                case url.match(/\/departments\/\d+$/) && method === 'PUT':
+                    return updateDepartment();
+                case url.match(/\/departments\/\d+$/) && method === 'DELETE':
+                    return deleteDepartment();
+
+                // Employee routes
+                case url.endsWith('/employees') && method === 'GET':
+                    return getEmployees();
+                case url.match(/\/employees\/\d+$/) && method === 'GET':
+                    return getEmployeeById();
+                case url.endsWith('/employees') && method === 'POST':
+                    return createEmployee();
+                case url.match(/\/employees\/\d+$/) && method === 'PUT':
+                    return updateEmployee();
+                case url.match(/\/employees\/\d+$/) && method === 'DELETE':
+                    return deleteEmployee();
+                case url.match(/\/employees\/department\/\d+$/) && method === 'GET':
+                    return getEmployeesByDepartment();
+
+                // Workflow routes
+                case url.endsWith('/workflows') && method === 'GET':
+                    return getWorkflows();
+                case url.match(/\/workflows\/\d+$/) && method === 'GET':
+                    return getWorkflowById();
+                case url.endsWith('/workflows') && method === 'POST':
+                    return createWorkflow();
+                case url.match(/\/workflows\/\d+$/) && method === 'PUT':
+                    return updateWorkflow();
+                case url.match(/\/workflows\/\d+$/) && method === 'DELETE':
+                    return deleteWorkflow();
+                case url.match(/\/workflows\/department\/\d+$/) && method === 'GET':
+                    return getWorkflowsByDepartment();
+
+                // Request routes
+                case url.endsWith('/requests') && method === 'GET':
+                    return getRequests();
+                case url.match(/\/requests\/\d+$/) && method === 'GET':
+                    return getRequestById();
+                case url.endsWith('/requests') && method === 'POST':
+                    return createRequest();
+                case url.match(/\/requests\/\d+$/) && method === 'PUT':
+                    return updateRequest();
+                case url.match(/\/requests\/\d+$/) && method === 'DELETE':
+                    return deleteRequest();
+                case url.match(/\/requests\/employee\/\d+$/) && method === 'GET':
+                    return getRequestsByEmployee();
+                case url.match(/\/requests\/status\/\w+$/) && method === 'GET':
+                    return getRequestsByStatus();
+                case url.match(/\/requests\/\d+\/approve$/) && method === 'PUT':
+                    return approveRequest();
+                case url.match(/\/requests\/\d+\/reject$/) && method === 'PUT':
+                    return rejectRequest();
+
                 default:
                     // pass through any requests not handled above
                     return next.handle(request);
@@ -382,6 +457,198 @@ export class FakeBackendInterceptor implements HttpInterceptor {
             // get refresh token from cookie
             return (document.cookie.split(';').find(x => x.includes('fakeRefreshToken')) || '=').split('=')[1];
         }
+
+        // Department route functions
+        function getDepartments() {
+            return ok(departments);
+        }
+
+        function getDepartmentById() {
+            const department = departments.find(x => x.id === idFromUrl(url));
+            return ok(department);
+        }
+
+        function createDepartment() {
+            const department = body;
+            department.id = departments.length ? Math.max(...departments.map(x => x.id)) + 1 : 1;
+            department.createdAt = new Date().toISOString();
+            department.updatedAt = new Date().toISOString();
+            departments.push(department);
+            localStorage.setItem(departmentsKey, JSON.stringify(departments));
+            return ok(department);
+        }
+
+        function updateDepartment() {
+            const department = body;
+            const index = departments.findIndex(x => x.id === idFromUrl(url));
+            if (index === -1) return error('Department not found');
+            department.updatedAt = new Date().toISOString();
+            departments[index] = { ...departments[index], ...department };
+            localStorage.setItem(departmentsKey, JSON.stringify(departments));
+            return ok(departments[index]);
+        }
+
+        function deleteDepartment() {
+            const id = idFromUrl(url);
+            departments = departments.filter(x => x.id !== id);
+            localStorage.setItem(departmentsKey, JSON.stringify(departments));
+            return ok();
+        }
+
+        // Employee route functions
+        function getEmployees() {
+            return ok(employees);
+        }
+
+        function getEmployeeById() {
+            const employee = employees.find(x => x.id === idFromUrl(url));
+            return ok(employee);
+        }
+
+        function createEmployee() {
+            const employee = body;
+            employee.id = employees.length ? Math.max(...employees.map(x => x.id)) + 1 : 1;
+            employee.createdAt = new Date().toISOString();
+            employee.updatedAt = new Date().toISOString();
+            employees.push(employee);
+            localStorage.setItem(employeesKey, JSON.stringify(employees));
+            return ok(employee);
+        }
+
+        function updateEmployee() {
+            const employee = body;
+            const index = employees.findIndex(x => x.id === idFromUrl(url));
+            if (index === -1) return error('Employee not found');
+            employee.updatedAt = new Date().toISOString();
+            employees[index] = { ...employees[index], ...employee };
+            localStorage.setItem(employeesKey, JSON.stringify(employees));
+            return ok(employees[index]);
+        }
+
+        function deleteEmployee() {
+            const id = idFromUrl(url);
+            employees = employees.filter(x => x.id !== id);
+            localStorage.setItem(employeesKey, JSON.stringify(employees));
+            return ok();
+        }
+
+        function getEmployeesByDepartment() {
+            const departmentId = idFromUrl(url);
+            const departmentEmployees = employees.filter(x => x.departmentId === departmentId);
+            return ok(departmentEmployees);
+        }
+
+        // Workflow route functions
+        function getWorkflows() {
+            return ok(workflows);
+        }
+
+        function getWorkflowById() {
+            const workflow = workflows.find(x => x.id === idFromUrl(url));
+            return ok(workflow);
+        }
+
+        function createWorkflow() {
+            const workflow = body;
+            workflow.id = workflows.length ? Math.max(...workflows.map(x => x.id)) + 1 : 1;
+            workflow.createdAt = new Date().toISOString();
+            workflow.updatedAt = new Date().toISOString();
+            workflows.push(workflow);
+            localStorage.setItem(workflowsKey, JSON.stringify(workflows));
+            return ok(workflow);
+        }
+
+        function updateWorkflow() {
+            const workflow = body;
+            const index = workflows.findIndex(x => x.id === idFromUrl(url));
+            if (index === -1) return error('Workflow not found');
+            workflow.updatedAt = new Date().toISOString();
+            workflows[index] = { ...workflows[index], ...workflow };
+            localStorage.setItem(workflowsKey, JSON.stringify(workflows));
+            return ok(workflows[index]);
+        }
+
+        function deleteWorkflow() {
+            const id = idFromUrl(url);
+            workflows = workflows.filter(x => x.id !== id);
+            localStorage.setItem(workflowsKey, JSON.stringify(workflows));
+            return ok();
+        }
+
+        function getWorkflowsByDepartment() {
+            const departmentId = idFromUrl(url);
+            const departmentWorkflows = workflows.filter(x => x.departmentId === departmentId);
+            return ok(departmentWorkflows);
+        }
+
+        // Request route functions
+        function getRequests() {
+            return ok(requests);
+        }
+
+        function getRequestById() {
+            const request = requests.find(x => x.id === idFromUrl(url));
+            return ok(request);
+        }
+
+        function createRequest() {
+            const request = body;
+            request.id = requests.length ? Math.max(...requests.map(x => x.id)) + 1 : 1;
+            request.createdAt = new Date().toISOString();
+            request.updatedAt = new Date().toISOString();
+            requests.push(request);
+            localStorage.setItem(requestsKey, JSON.stringify(requests));
+            return ok(request);
+        }
+
+        function updateRequest() {
+            const request = body;
+            const index = requests.findIndex(x => x.id === idFromUrl(url));
+            if (index === -1) return error('Request not found');
+            request.updatedAt = new Date().toISOString();
+            requests[index] = { ...requests[index], ...request };
+            localStorage.setItem(requestsKey, JSON.stringify(requests));
+            return ok(requests[index]);
+        }
+
+        function deleteRequest() {
+            const id = idFromUrl(url);
+            requests = requests.filter(x => x.id !== id);
+            localStorage.setItem(requestsKey, JSON.stringify(requests));
+            return ok();
+        }
+
+        function getRequestsByEmployee() {
+            const employeeId = idFromUrl(url);
+            const employeeRequests = requests.filter(x => x.employeeId === employeeId);
+            return ok(employeeRequests);
+        }
+
+        function getRequestsByStatus() {
+            const status = url.split('/').pop();
+            const statusRequests = requests.filter(x => x.status === status);
+            return ok(statusRequests);
+        }
+
+        function approveRequest() {
+            const id = idFromUrl(url);
+            const index = requests.findIndex(x => x.id === id);
+            if (index === -1) return error('Request not found');
+            requests[index].status = 'APPROVED';
+            requests[index].updatedAt = new Date().toISOString();
+            localStorage.setItem(requestsKey, JSON.stringify(requests));
+            return ok(requests[index]);
+        }
+
+        function rejectRequest() {
+            const id = idFromUrl(url);
+            const index = requests.findIndex(x => x.id === id);
+            if (index === -1) return error('Request not found');
+            requests[index].status = 'REJECTED';
+            requests[index].updatedAt = new Date().toISOString();
+            localStorage.setItem(requestsKey, JSON.stringify(requests));
+            return ok(requests[index]);
+        }
     }
 }
             
@@ -391,4 +658,200 @@ export let fakeBackendProvider = {
     useClass: FakeBackendInterceptor,
     multi: true
 };
+            
+// Initialize test data
+function initializeTestData() {
+    // Test accounts
+    if (!localStorage.getItem(accountsKey)) {
+        const testAccounts = [
+            {
+                id: 1,
+                email: 'jollyally28@gmail.com',
+                password: 'Admin123!',
+                role: Role.Admin,
+                isVerified: true,
+                dateCreated: new Date().toISOString(),
+                refreshTokens: []
+            }
+        ];
+        localStorage.setItem(accountsKey, JSON.stringify(testAccounts));
+    }
+
+    // Test departments
+    if (!localStorage.getItem(departmentsKey)) {
+        const testDepartments = [
+            {
+                id: 1,
+                name: 'Human Resources',
+                description: 'Manages employee relations, recruitment, and benefits',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            },
+            {
+                id: 2,
+                name: 'Information Technology',
+                description: 'Handles software development, infrastructure, and support',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            },
+            {
+                id: 3,
+                name: 'Finance',
+                description: 'Manages financial operations and accounting',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            }
+        ];
+        localStorage.setItem(departmentsKey, JSON.stringify(testDepartments));
+    }
+
+    // Test employees
+    if (!localStorage.getItem(employeesKey)) {
+        const testEmployees = [
+            {
+                id: 1,
+                firstName: 'John',
+                lastName: 'Doe',
+                email: 'john.doe@company.com',
+                departmentId: 1,
+                position: 'HR Manager',
+                hireDate: new Date('2020-01-15').toISOString(),
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            },
+            {
+                id: 2,
+                firstName: 'Jane',
+                lastName: 'Smith',
+                email: 'jane.smith@company.com',
+                departmentId: 2,
+                position: 'Senior Developer',
+                hireDate: new Date('2019-06-01').toISOString(),
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            },
+            {
+                id: 3,
+                firstName: 'Mike',
+                lastName: 'Johnson',
+                email: 'mike.johnson@company.com',
+                departmentId: 3,
+                position: 'Financial Analyst',
+                hireDate: new Date('2021-03-10').toISOString(),
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            }
+        ];
+        localStorage.setItem(employeesKey, JSON.stringify(testEmployees));
+    }
+
+    // Test workflows
+    if (!localStorage.getItem(workflowsKey)) {
+        const testWorkflows = [
+            {
+                id: 1,
+                name: 'Leave Request',
+                description: 'Process for requesting time off',
+                departmentId: 1,
+                steps: [
+                    {
+                        id: 1,
+                        name: 'Submit Request',
+                        order: 1,
+                        approverRole: 'Employee',
+                        isActive: true
+                    },
+                    {
+                        id: 2,
+                        name: 'Manager Approval',
+                        order: 2,
+                        approverRole: 'Manager',
+                        isActive: true
+                    },
+                    {
+                        id: 3,
+                        name: 'HR Review',
+                        order: 3,
+                        approverRole: 'HR',
+                        isActive: true
+                    }
+                ],
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            },
+            {
+                id: 2,
+                name: 'Expense Reimbursement',
+                description: 'Process for claiming business expenses',
+                departmentId: 3,
+                steps: [
+                    {
+                        id: 1,
+                        name: 'Submit Receipts',
+                        order: 1,
+                        approverRole: 'Employee',
+                        isActive: true
+                    },
+                    {
+                        id: 2,
+                        name: 'Manager Approval',
+                        order: 2,
+                        approverRole: 'Manager',
+                        isActive: true
+                    },
+                    {
+                        id: 3,
+                        name: 'Finance Review',
+                        order: 3,
+                        approverRole: 'Finance',
+                        isActive: true
+                    }
+                ],
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            }
+        ];
+        localStorage.setItem(workflowsKey, JSON.stringify(testWorkflows));
+    }
+
+    // Test requests
+    if (!localStorage.getItem(requestsKey)) {
+        const testRequests = [
+            {
+                id: 1,
+                employeeId: 1,
+                workflowId: 1,
+                status: 'PENDING',
+                currentStep: 2,
+                data: 'Requesting 3 days of annual leave from 2024-03-15 to 2024-03-17',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            },
+            {
+                id: 2,
+                employeeId: 2,
+                workflowId: 2,
+                status: 'APPROVED',
+                currentStep: 3,
+                data: 'Expense claim for business trip: $500 for accommodation and $200 for meals',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            },
+            {
+                id: 3,
+                employeeId: 3,
+                workflowId: 1,
+                status: 'REJECTED',
+                currentStep: 2,
+                data: 'Requesting 5 days of sick leave from 2024-03-10',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            }
+        ];
+        localStorage.setItem(requestsKey, JSON.stringify(testRequests));
+    }
+}
+
+// Call initializeTestData when the application starts
+initializeTestData();
             

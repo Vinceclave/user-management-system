@@ -1,20 +1,35 @@
-<div class="app-container" [ngClass]="{ 'bg-light': account }">
-  <!-- main nav -->
-  <nav class="navbar navbar-expand navbar-dark bg-dark" *ngIf="account">
-      <div class="navbar-nav">
-          <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-item nav-link">Home</a>
-          <a routerLink="/profile" routerLinkActive="active" class="nav-item nav-link">Profile</a>
-          <a *ngIf="account.role === Role.Admin" routerLink="/admin" routerLinkActive="active" class="nav-item nav-link">Admin</a>
-          <a (click)="logout()" class="nav-item nav-link">Logout</a>
-      </div>
-  </nav>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <div class="container-fluid">
+        <a class="navbar-brand" routerLink="/home">
+            <i class="fas fa-building me-2"></i>
+            User Management System
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item" *ngIf="account">
+                    <a class="nav-link" routerLink="/account">
+                        <i class="fas fa-user me-2"></i>
+                        {{account.firstName}} {{account.lastName}}
+                    </a>
+                </li>
+                <li class="nav-item" *ngIf="account">
+                    <a class="nav-link" (click)="logout()" style="cursor: pointer;">
+                        <i class="fas fa-sign-out-alt me-2"></i>
+                        Logout
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
 
-  <!-- subnav router outlet -->
-  <router-outlet name="subnav"></router-outlet>
+<div class="app-container">
+    <!-- global alert -->
+    <alert></alert>
 
-  <!-- global alert -->
-  <alert></alert>
-
-  <!-- main router outlet -->
-  <router-outlet></router-outlet>
+    <!-- main router outlet -->
+    <router-outlet></router-outlet>
 </div>
