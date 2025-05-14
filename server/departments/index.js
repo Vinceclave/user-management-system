@@ -1,13 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../_helpers/db');
-const authorize = require('../_middleware/authorize');
-const Role = require('../_helpers/role');
+const db = require('../helpers/db');
+const authorize = require('../middleware/authorize');
+const Role = require('../helpers/role');
 
-router.post('/', authorize(Role.Admin),create);
-router.get('/',authorize(), getAll);
+router.post('/', authorize(Role.Admin), create);
+router.get('/', authorize(), getAll);
 router.get('/:id', authorize(), getById);
-router.put('/:id', authorize(Role.Admin),_delete);
+router.put('/:id', authorize(Role.Admin), update);
+router.delete('/:id', authorize(Role.Admin), _delete);
+
 async function create(req,res,next) {
     try {
         const department = await db.Department.create(req.body);
@@ -22,7 +24,7 @@ async function getAll(req,res,next) {
         });
         res.json(departments.map(d => ({
             ...d.toJSON(),
-            employeeCount: d.Employees.length
+            employeeCount: d.employees ? d.employees.length : 0
         })));
     } catch (err) {next(err);}
 }
@@ -33,7 +35,10 @@ async function getById(req, res, next) {
             include: [{ model: db.Employee, attributes: ['id'] }]
         });
         if (!department) throw new Error('Department not found');
-        res.json({ ...department.toJSON(), employeeCount: department.Employees.length});
+        res.json({ 
+            ...department.toJSON(), 
+            employeeCount: department.employees ? department.employees.length : 0
+        });
     } catch (err) { next(err); }
 }
 
