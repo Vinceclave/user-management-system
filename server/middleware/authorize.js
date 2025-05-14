@@ -1,4 +1,4 @@
-const jwt = require('express-jwt');
+const { expressjwt: jwt } = require('express-jwt');
 const { secret } = require('../config.json');
 const db = require('../helpers/db');
 
@@ -38,7 +38,14 @@ function authorize(roles = []) {
                 req.user.role = account.role;
                 const refreshTokens = await account.getRefreshTokens();
                 req.user.ownsToken = token => !!refreshTokens.find(x => x.token === token);
-                next();
+
+                // Regenerate session ID to prevent session fixation
+                req.session.regenerate((err) => {
+                    if (err) {
+                        return res.status(500).json({ message: 'Internal server error' });
+                    }
+                    next();
+                });
             } catch (err) {
                 return res.status(500).json({ message: 'Internal server error' });
             }
