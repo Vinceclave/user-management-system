@@ -1,6 +1,8 @@
-const config = require('../config.json');
+const fs = require('fs');
+const path = require('path');
 const mysql = require('mysql2/promise');
 const { Sequelize } = require('sequelize');
+const functions = require('firebase-functions');
 
 module.exports = db = {};
 
@@ -8,12 +10,25 @@ initialize();
 
 async function initialize() {
     try {
-        // create db if it doesn't already exist
-        const host = process.env.DB_HOST || config.database.host;
-        const port = process.env.DB_PORT || config.database.port;
-        const user = process.env.DB_USER || config.database.user;
-        const password = process.env.DB_PASSWORD || config.database.password;
-        const database = process.env.DB_NAME || config.database.database;
+        let dbConfig;
+        
+        // Check if running in Firebase environment or local
+        if (process.env.FUNCTIONS_EMULATOR || process.env.FUNCTION_NAME) {
+            // Firebase environment - use environment variables
+            dbConfig = {
+                host: process.env.DB_HOST || functions.config().db.host,
+                port: process.env.DB_PORT || functions.config().db.port,
+                user: process.env.DB_USER || functions.config().db.user,
+                password: process.env.DB_PASSWORD || functions.config().db.password,
+                database: process.env.DB_NAME || functions.config().db.name
+            };
+        } else {
+            // Local environment - use config file
+            const config = require('../config.json');
+            dbConfig = config.database;
+        }
+        
+        const { host, port, user, password, database } = dbConfig;
         
         console.log('Connecting to MySQL server...');
         const connection = await mysql.createConnection({

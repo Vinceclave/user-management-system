@@ -1,0 +1,52 @@
+name: Deploy to Firebase
+
+on:
+  push:
+    branches:
+      - beansdeployment
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Client Dependencies
+        run: |
+          cd client
+          npm install
+
+      - name: Build Angular App
+        run: |
+          cd client
+          npm run build
+
+      - name: Install Server Dependencies
+        run: |
+          cd server
+          npm install
+
+      - name: Set up Firebase Config
+        run: |
+          firebase functions:config:set db.host="${{ secrets.DB_HOST }}" \
+                                       db.port="${{ secrets.DB_PORT }}" \
+                                       db.user="${{ secrets.DB_USER }}" \
+                                       db.password="${{ secrets.DB_PASSWORD }}" \
+                                       db.name="${{ secrets.DB_NAME }}" \
+                                       jwt.secret="${{ secrets.JWT_SECRET }}"
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+      - name: Deploy to Firebase
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_FINAL_USER_MANAGEMENT }}'
+          channelId: live
+          projectId: final-user-management
