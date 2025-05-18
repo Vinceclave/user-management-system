@@ -6,18 +6,16 @@ import { RoleGuard } from './admin/guards/role.guard';
 import { AuthGuard } from './_helpers/auth.guard';
 import { HomeComponent } from './home/home.component';
 
-const routes: Routes = [    {
+const routes: Routes = [
+    {
         path: '',
         component: LayoutComponent,
-        canActivate: [AuthGuard], // Add AuthGuard to protect all routes within Layout
+        canActivate: [AuthGuard],
         children: [
-            // Routes accessible by all authenticated users
             { path: '', redirectTo: 'home', pathMatch: 'full' },
             { path: 'home', component: HomeComponent },
             { path: 'profile', loadChildren: () => import('./profile/profile.module').then(m => m.ProfileModule) },
-
-            // Admin only routes
-            { 
+            {
                 path: 'admin',
                 canActivate: [RoleGuard],
                 data: { roles: [Role.Admin] },
@@ -25,7 +23,8 @@ const routes: Routes = [    {
             }
         ]
     },
-    { path: 'account', loadChildren: () => import('./account/account.module').then(m => m.AccountModule) }
+    { path: 'account', loadChildren: () => import('./account/account.module').then(m => m.AccountModule) },
+    { path: '**', redirectTo: 'account/login' } // Redirect unknown routes to login
 ];
 
 @NgModule({

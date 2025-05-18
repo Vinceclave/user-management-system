@@ -1,10 +1,10 @@
 {
     "database": {
-        "host": "localhost",
+        "host": "153.92.15.31",
         "port": 3306,
-        "user": "root",
-        "password": "",
-        "database": "node-mysql-signup-verification"
+        "user": "u875409848_alino",
+        "password": "9T2Z5$3UKkgSYzE",
+        "database": "u875409848_alino"
     },
     "secret": "mrbeans-secure-jwt-secret-key-2024",
     "emailFrom": "mrbeans.dev@gmail.com",
