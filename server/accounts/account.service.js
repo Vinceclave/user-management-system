@@ -239,7 +239,7 @@ function generateJwtToken(account) {
             id: account.id,
             role: account.role
         }, 
-        config.secret, 
+        process.env.JWT_SECRET || config.secret, 
         { expiresIn: '24h' }
     );
 }
