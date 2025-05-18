@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve --open",
-    "build": "ng build",
+    "start": "node init && ng serve --open",
+    "build": "node init && ng build",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e"
@@ -23,7 +23,7 @@
     "tslib": "^2.6.2",
     "zone.js": "~0.14.4"
   },
-    "devDependencies": {
+  "devDependencies": {
     "@angular-devkit/build-angular": "^17.3.2",
     "@angular/cli": "^17.3.2",
     "@angular/compiler-cli": "^17.3.2",
