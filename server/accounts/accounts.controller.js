@@ -270,7 +270,8 @@ function setTokenCookie(res, token) {
         httpOnly: true,
         expires: new Date(Date.now() + 7*24*60*60*1000),
         sameSite: 'none', // important for cross-site cookies
-        secure: true      // required for sameSite: 'none'
+        secure: true,     // required for sameSite: 'none'
+        domain: '.cluster-sumfw3zmzzhzkx4mpvz3ogth4y.cloudworkstations.dev' // allow cookie on all subdomains
     };
     res.cookie('refreshToken', token, cookieOptions);
 }
