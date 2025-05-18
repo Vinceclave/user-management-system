@@ -11,30 +11,29 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cookieParser());
 
-// Custom headers middleware to ensure CORS headers are set
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin === 'https://final-user-management.web.app' ? 'https://final-user-management.web.app' : 'http://localhost:4200');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  next();
-});
+// CORS configuration
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, etc)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = ['http://localhost:4200', 'https://final-user-management.web.app'];
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization']
+};
 
-// allow cors requests from any origin and with credentials
-app.use(cors({
-   origin: ['http://localhost:4200', 'https://final-user-management.web.app'],
-   credentials: true,
-   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-   allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization']
-}));
+// Apply CORS middleware for all routes
+app.use(cors(corsOptions));
 
-// Pre-flight requests
-app.options('*', cors({
-   origin: ['http://localhost:4200', 'https://final-user-management.web.app'],
-   credentials: true,
-   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-   allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization']
-}));
+// Handle OPTIONS requests explicitly
+app.options('*', cors(corsOptions));
 
 // api routes
 app.use('/accounts', require('./accounts/accounts.controller'));
