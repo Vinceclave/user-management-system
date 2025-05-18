@@ -2,7 +2,6 @@ const fs = require('fs');
 const path = require('path');
 const mysql = require('mysql2/promise');
 const { Sequelize } = require('sequelize');
-const functions = require('firebase-functions');
 
 module.exports = db = {};
 
@@ -12,15 +11,15 @@ async function initialize() {
     try {
         let dbConfig;
         
-        // Check if running in Firebase environment or local
-        if (process.env.FUNCTIONS_EMULATOR || process.env.FUNCTION_NAME) {
-            // Firebase environment - use environment variables
+        // Check if running in production or local
+        if (process.env.NODE_ENV === 'production') {
+            // Production environment - use environment variables
             dbConfig = {
-                host: process.env.DB_HOST || functions.config().db.host,
-                port: process.env.DB_PORT || functions.config().db.port,
-                user: process.env.DB_USER || functions.config().db.user,
-                password: process.env.DB_PASSWORD || functions.config().db.password,
-                database: process.env.DB_NAME || functions.config().db.name
+                host: process.env.DB_HOST,
+                port: process.env.DB_PORT || 3306,
+                user: process.env.DB_USER,
+                password: process.env.DB_PASSWORD,
+                database: process.env.DB_NAME
             };
         } else {
             // Local environment - use config file

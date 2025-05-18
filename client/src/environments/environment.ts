@@ -1,5 +1,5 @@
 export const environment = {
     production: false,
-    apiUrl: 'http://localhost:4000', // Server URL
+    apiUrl: 'https://user-management-system-irv7.onrender.com', // Server URL
     useFakeBackend: false // Set to false to use real backend
 };

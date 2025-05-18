@@ -1,8 +1,7 @@
 {
   "name": "user-management-system",
   "version": "1.0.0",
-  "description": "User Management System with Firebase Deployment",
-  "scripts": {
+  "description": "User Management System with Firebase Deployment",  "scripts": {
     "install:client": "cd client && npm install",
     "install:server": "cd server && npm install",
     "install:all": "npm run install:client && npm run install:server",
@@ -12,10 +11,9 @@
     "start:dev": "concurrently \"npm run start:client\" \"npm run start:server\"",
     "firebase:login": "firebase login",
     "firebase:init": "firebase init",
-    "firebase:deploy": "firebase deploy",
+    "firebase:deploy": "firebase deploy --only hosting",
     "deploy:hosting": "firebase deploy --only hosting",
-    "deploy:functions": "firebase deploy --only functions",
-    "deploy": "npm run build:client && firebase deploy"
+    "deploy": "npm run build:client && firebase deploy --only hosting"
   },
   "keywords": [
     "angular",

@@ -1,4 +1,3 @@
-const functions = require('firebase-functions');
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
@@ -32,11 +31,8 @@ app.use('/workflows', require('./workflows'));
 // Global error handler
 app.use(errorHandler);
 
-// Export the API as a Firebase Function
-exports.api = functions.https.onRequest(app);
-
-// Global error handler
-app.use(errorHandler);
-
-// Export the API as a Firebase Function
-exports.api = functions.https.onRequest(app);
+// Start server
+const port = process.env.PORT || 4000;
+app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+});

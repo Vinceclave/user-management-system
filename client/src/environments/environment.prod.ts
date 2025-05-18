@@ -1,5 +1,6 @@
+// filepath: c:\Users\datan\OneDrive\Desktop\user-management-system\client\src\environments\environment.prod.ts
 export const environment = {
     production: true,
-    apiUrl: 'https://igot.host/api', // Replace with your actual external API server
-    useFakeBackend: false // Always use real backend in production
+    apiUrl: 'https://user-management-system-irv7.onrender.com', // Your new Render URL
+    useFakeBackend: false
 };

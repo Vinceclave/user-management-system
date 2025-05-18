@@ -1,16 +1,15 @@
 const { expressjwt: jwt } = require('express-jwt');
-const functions = require('firebase-functions');
 const db = require('../helpers/db');
 
-// Get JWT secret from config, env variable, or Firebase config
+// Get JWT secret from config or env variable
 let secret;
 try {
     // Try to load from config.json first
     const config = require('../config.json');
     secret = config.secret;
 } catch (e) {
-    // Use environment variables or Firebase config if local config is not available
-    secret = process.env.JWT_SECRET || functions.config().jwt.secret || 'mrbeans-secure-jwt-secret-key-2024';
+    // Use environment variables if local config is not available
+    secret = process.env.JWT_SECRET || 'mrbeans-secure-jwt-secret-key-2024';
 }
 
 module.exports = authorize;
