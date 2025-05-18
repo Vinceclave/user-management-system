@@ -14,13 +14,22 @@ export function appInitializer(accountService: AccountService) {
         },
         error: (error) => {
           // If refresh fails, just continue without a token
-          console.log('Token refresh failed - this is normal for new users or expired sessions');
+          console.log('Token refresh failed:', error);
           
           // Don't show error message for standard auth flow
-          if (error !== 'No refresh token found' && error !== 'Invalid token') {
+          if (error === 'No refresh token found') {
+            console.log('No refresh token found - new user or cleared cookies');
+          } else if (error === 'Invalid token') {
+            console.log('Invalid token - likely expired or not present in database');
+          } else if (error === 'Token expired') {
+            console.log('Refresh token has expired');
+          } else if (error === 'Token revoked') {
+            console.log('Refresh token was revoked');
+          } else {
             console.error('Unexpected error during token refresh:', error);
           }
           
+          // Always resolve to continue the application startup
           resolve(true);
         }
       });

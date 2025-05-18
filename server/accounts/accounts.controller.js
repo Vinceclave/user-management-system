@@ -143,8 +143,17 @@ function verifyEmailSchema(req, res, next) {
 }
 
 function verifyEmail(req, res, next) {
-    accountService.verifyEmail(req.body)
-        .then(() => res.json({ message: 'Verification successful, you can now login' }))
+    const ipAddress = req.ip;
+    
+    accountService.verifyEmail({ ...req.body, ipAddress })
+        .then(({ refreshToken, ...account }) => {
+            console.log('Email verification successful, setting cookie');
+            setTokenCookie(res, refreshToken);
+            res.json({ 
+                ...account,
+                message: 'Verification successful, you are now logged in' 
+            });
+        })
         .catch(next);
 }
 

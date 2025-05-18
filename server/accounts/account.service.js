@@ -112,14 +112,38 @@ async function register(params, origin) {
     await sendVerificationEmail(account, origin);
 }
 
-async function verifyEmail({ token }) {
+async function verifyEmail({ token, ipAddress }) {
+    console.log('Verifying email with token:', token);
     const account = await db.Account.findOne({ where: { verificationToken: token } });
 
-    if (!account) throw 'Verification failed';
+    if (!account) {
+        console.error('Verification failed - token not found');
+        throw 'Verification failed';
+    }
 
+    // Update account to verified
     account.verified = Date.now();
+    account.isVerified = true; // Ensure isVerified is set to true
     account.verificationToken = null;
     await account.save();
+    
+    console.log('Email verified successfully for account:', account.email);
+    
+    // generate jwt and refresh token after successful verification
+    const jwtToken = generateJwtToken(account);
+    const refreshToken = await generateRefreshToken(account, ipAddress);
+    
+    // save refresh token
+    await refreshToken.save();
+    
+    console.log('Generated authentication tokens after verification');
+    
+    // return basic details and tokens
+    return {
+        ...basicDetails(account),
+        jwtToken,
+        refreshToken: refreshToken.token
+    };
 }
 
 async function forgotPassword({ email }, origin) {
@@ -224,38 +248,54 @@ async function getAccount(id) {
 async function getRefreshToken(token) {
     if (!token) {
         console.log('No refresh token provided');
-        throw 'Invalid token';
+        throw 'No refresh token found';
     }
     
-    const refreshToken = await db.RefreshToken.findOne({ 
-        where: { token },
-        include: [{ model: db.Account, as: 'account' }]
-    });
-    
-    if (!refreshToken) {
-        console.log('Refresh token not found in database');
-        throw 'Invalid token';
-    }
-    
-    if (refreshToken.isExpired) {
-        console.log('Refresh token has expired', {
-            token,
-            expires: refreshToken.expires,
-            now: new Date()
+    try {
+        const refreshToken = await db.RefreshToken.findOne({ 
+            where: { token },
+            include: [{ model: db.Account, as: 'account' }]
         });
-        throw 'Token expired';
+        
+        if (!refreshToken) {
+            console.log('Refresh token not found in database:', { tokenLength: token.length });
+            throw 'Invalid token';
+        }
+        
+        // Check if the associated account exists
+        if (!refreshToken.account) {
+            console.log('Associated account not found for refresh token');
+            throw 'Account not found';
+        }
+        
+        if (refreshToken.isExpired) {
+            console.log('Refresh token has expired', {
+                token: token.substring(0, 10) + '...',
+                expires: refreshToken.expires,
+                now: new Date()
+            });
+            throw 'Token expired';
+        }
+        
+        if (!refreshToken.isActive) {
+            console.log('Refresh token is not active (might be revoked)', {
+                token: token.substring(0, 10) + '...',
+                revoked: refreshToken.revoked,
+                replacedByToken: refreshToken.replacedByToken ? refreshToken.replacedByToken.substring(0, 10) + '...' : 'none'
+            });
+            throw 'Token revoked';
+        }
+        
+        console.log('Valid refresh token found for account:', refreshToken.account.email);
+        return refreshToken;
+    } catch (error) {
+        // If it's not one of our custom error messages, log the full error
+        if (typeof error !== 'string') {
+            console.error('Error validating refresh token:', error);
+            throw 'Invalid token';
+        }
+        throw error;
     }
-    
-    if (!refreshToken.isActive) {
-        console.log('Refresh token is not active (might be revoked)', {
-            token,
-            revoked: refreshToken.revoked,
-            replacedByToken: refreshToken.replacedByToken
-        });
-        throw 'Token revoked';
-    }
-    
-    return refreshToken;
 }
 
 async function hash(password) {

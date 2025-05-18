@@ -25,14 +25,20 @@ export class VerifyEmailComponent implements OnInit {
         const token = this.route.snapshot.queryParams['token'];
 
         // remove token from url to prevent http referer leakage
-        this.router.navigate([], { relativeTo: this.route, replaceUrl: true });
-
-        this.accountService.verifyEmail(token)
+        this.router.navigate([], { relativeTo: this.route, replaceUrl: true });        this.accountService.verifyEmail(token)
             .pipe(first())
             .subscribe({
-                next: () => {
-                    this.alertService.success('Verification successful, you can now login', { keepAfterRouteChange: true });
-                    this.router.navigate(['../login'], { relativeTo: this.route });
+                next: (response) => {
+                    // Check if the response includes account information with JWT token
+                    if (response && response.jwtToken) {
+                        // We received an authenticated account - user is now logged in
+                        this.alertService.success('Verification successful, you are now logged in', { keepAfterRouteChange: true });
+                        this.router.navigate(['/'], { replaceUrl: true });
+                    } else {
+                        // Backward compatibility - no automatic login
+                        this.alertService.success('Verification successful, you can now login', { keepAfterRouteChange: true });
+                        this.router.navigate(['../login'], { relativeTo: this.route });
+                    }
                 },
                 error: () => {
                     this.emailStatus = EmailStatus.Failed;

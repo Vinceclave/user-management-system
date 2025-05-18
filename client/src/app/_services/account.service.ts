@@ -82,55 +82,111 @@ export class AccountService {
                 return response;
             }));
     }
-    
     verifyEmail(token: string) {
-        return this.http.post(`${baseUrl}/verify-email`, { token });
+        return this.http.post<any>(`${baseUrl}/verify-email`, { token }, {
+            withCredentials: true,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        }).pipe(map((response: any) => {
+            // If we get back an account with JWT token, update the account state
+            if (response && response.jwtToken) {
+                console.log('Verification successful with auto-login', response);
+                this.accountSubject.next(response);
+                this.startRefreshTokenTimer();
+            }
+            return response;
+        }));
     }
-    
-    forgotPassword(email: string) {
-        return this.http.post(`${baseUrl}/forgot-password`, { email });
+      forgotPassword(email: string) {
+        return this.http.post(`${baseUrl}/forgot-password`, { email }, {
+            withCredentials: true,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
     }
     
     validateResetToken(token: string) {
-        return this.http.post(`${baseUrl}/validate-reset-token`, { token });
+        return this.http.post(`${baseUrl}/validate-reset-token`, { token }, {
+            withCredentials: true,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
     }
     
     resetPassword(token: string, password: string, confirmPassword: string) {
-        return this.http.post(`${baseUrl}/reset-password`, { token, password, confirmPassword });
+        return this.http.post(`${baseUrl}/reset-password`, { token, password, confirmPassword }, {
+            withCredentials: true,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
     }
-    
-    getAll() {
-        return this.http.get<Account[]>(baseUrl);
+      getAll() {
+        return this.http.get<Account[]>(baseUrl, {
+            withCredentials: true,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
     }
     
     getById(id: string) {
-        return this.http.get<Account>(`${baseUrl}/${id}`);
+        return this.http.get<Account>(`${baseUrl}/${id}`, {
+            withCredentials: true, 
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
     }
     
     create(params) {
-        return this.http.post(baseUrl, params);
-    }
-    
-    update(id, params) {
-        return this.http.put(`${baseUrl}/${id}`, params)
-            .pipe(map((account: any) => {
-            // update the current account if it was updated
-            if (account.id === this.accountValue.id) {
-                // publish updated account to subscribers
-                account = { ...this.accountValue, ...account };
-                this.accountSubject.next(account);
+        return this.http.post(baseUrl, params, {
+            withCredentials: true,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
             }
-            return account;
+        });
+      update(id, params) {
+        return this.http.put(`${baseUrl}/${id}`, params, {
+            withCredentials: true,
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+            .pipe(map((account: any) => {
+                // update the current account if it was updated
+                if (account.id === this.accountValue.id) {
+                    // publish updated account to subscribers
+                    account = { ...this.accountValue, ...account };
+                    this.accountSubject.next(account);
+                }
+                return account;
             }));
     }
     
     delete(id: string) {
-        return this.http.delete(`${baseUrl}/${id}`)
-            .pipe(finalize(() => {
-            // auto logout if the logged-in account was deleted
-            if (id === this.accountValue.id) {
-                this.logout();
+        return this.http.delete(`${baseUrl}/${id}`, {
+            withCredentials: true,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
             }
+        })
+            .pipe(finalize(() => {
+                // auto logout if the logged-in account was deleted
+                if (id === this.accountValue.id) {
+                    this.logout();
+                }
             }));
     }
     
