@@ -54,17 +54,35 @@ function authenticate(req, res, next) {
 }
 
 function refreshToken(req, res, next) {
-    const token = req.cookies.refreshToken;
-    const ipAddress = req.ip;
+    console.log('Refresh token request received');
+    console.log('Cookies:', req.cookies);
+    console.log('Headers:', req.headers);
+    
+    // Try to get token from cookies first, then from body
+    let token = req.cookies.refreshToken;
+    
+    if (!token && req.body && req.body.refreshToken) {
+        token = req.body.refreshToken;
+    }
+    
     if (!token) {
+        console.log('No refresh token found in request');
         return res.status(400).json({ message: 'Refresh token is required and was not provided.' });
     }
+    
+    const ipAddress = req.ip;
+    console.log('Attempting to refresh token:', { token: token.substring(0, 10) + '...', ipAddress });
+    
     accountService.refreshToken({ token, ipAddress })
         .then(({ refreshToken, ...account }) => {
             setTokenCookie(res, refreshToken);
+            console.log('Token refresh successful');
             res.json(account);
         })
-        .catch(next);
+        .catch(err => {
+            console.error('Token refresh failed:', err);
+            next(err);
+        });
 }
 
 function revokeTokenSchema(req, res, next) {
@@ -271,7 +289,8 @@ function setTokenCookie(res, token) {
         expires: new Date(Date.now() + 7*24*60*60*1000),
         sameSite: 'none', // important for cross-site cookies
         secure: true,     // required for sameSite: 'none'
-        domain: '.cluster-sumfw3zmzzhzkx4mpvz3ogth4y.cloudworkstations.dev' // allow cookie on all subdomains
+        path: '/api',     // match the API path prefix
+        domain: 'cluster-sumfw3zmzzhzkx4mpvz3ogth4y.cloudworkstations.dev' // set to root domain without leading dot
     };
     res.cookie('refreshToken', token, cookieOptions);
 }

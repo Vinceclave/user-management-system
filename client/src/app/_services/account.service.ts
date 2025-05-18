@@ -2,7 +2,8 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { map, finalize } from 'rxjs/operators';
+import { map, finalize, catchError } from 'rxjs/operators';
+import { throwError } from 'rxjs';
 
 import { environment } from '@environments/environment';
 import { Account } from '@app/_models';
@@ -47,16 +48,27 @@ export class AccountService {
         this.accountSubject.next(null);
         this.router.navigate(['/account/login']);
     }
-    
-    refreshToken() {
+      refreshToken() {
         console.log('AccountService - Refreshing token');
-        return this.http.post<any>(`${baseUrl}/refresh-token`, {}, { withCredentials: true })
-            .pipe(map((account) => {
+        return this.http.post<any>(`${baseUrl}/refresh-token`, {}, { 
+            withCredentials: true,
+            headers: {
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
+            }
+        }).pipe(
+            map((account) => {
                 console.log('AccountService - Token refreshed:', account);
                 this.accountSubject.next(account);
                 this.startRefreshTokenTimer();
                 return account;
-            }));
+            }),
+            catchError(error => {
+                console.error('AccountService - Token refresh failed:', error);
+                this.logout();
+                return throwError(() => error);
+            })
+        );
     }
       register(account: Account) {
         console.log('AccountService - Registering account:', account);

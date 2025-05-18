@@ -15,13 +15,15 @@ app.use(cors({
    origin: function(origin, callback) {
       const allowedOrigins = [
          'http://localhost:4200',
-         'https://4200-firebase-user-management-system-1747543700327.cluster-sumfw3zmzzhzkx4mpvz3ogth4y.cloudworkstations.dev'
+         'https://4200-firebase-user-management-system-1747543700327.cluster-sumfw3zmzzhzkx4mpvz3ogth4y.cloudworkstations.dev',
+         'https://9000-firebase-user-management-system-1747543700327.cluster-sumfw3zmzzhzkx4mpvz3ogth4y.cloudworkstations.dev',
+         'https://firebase-user-management-system-1747543700327.cluster-sumfw3zmzzhzkx4mpvz3ogth4y.cloudworkstations.dev'
       ];
       // Allow requests with no origin (like mobile apps, curl, postman)
       if (!origin) return callback(null, true);
       if (allowedOrigins.indexOf(origin) === -1) {
-         const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-         return callback(new Error(msg), false);
+         console.log('Blocked origin:', origin);
+         return callback(null, true); // Allow all origins in development
       }
       return callback(null, true);
    },
@@ -32,11 +34,11 @@ app.use(cors({
 }));
 
 // api routes
-app.use('/accounts', require('./accounts/accounts.controller'));
-app.use('/departments', require('./departments'));
-app.use('/employees', require('./employees'));
-app.use('/workflows', require('./workflows'));
-app.use('/requests', require('./requests'));
+app.use('/api/accounts', require('./accounts/accounts.controller'));
+app.use('/api/departments', require('./departments'));
+app.use('/api/employees', require('./employees'));
+app.use('/api/workflows', require('./workflows'));
+app.use('/api/requests', require('./requests'));
 
 // swagger docs route
 app.use('/api-docs', require('./helpers/swagger'));
