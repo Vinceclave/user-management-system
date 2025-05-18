@@ -222,8 +222,39 @@ async function getAccount(id) {
 }
 
 async function getRefreshToken(token) {
-    const refreshToken = await db.RefreshToken.findOne({ where: { token } });
-    if (!refreshToken || !refreshToken.isActive) throw 'Invalid token';
+    if (!token) {
+        console.log('No refresh token provided');
+        throw 'Invalid token';
+    }
+    
+    const refreshToken = await db.RefreshToken.findOne({ 
+        where: { token },
+        include: [{ model: db.Account, as: 'account' }]
+    });
+    
+    if (!refreshToken) {
+        console.log('Refresh token not found in database');
+        throw 'Invalid token';
+    }
+    
+    if (refreshToken.isExpired) {
+        console.log('Refresh token has expired', {
+            token,
+            expires: refreshToken.expires,
+            now: new Date()
+        });
+        throw 'Token expired';
+    }
+    
+    if (!refreshToken.isActive) {
+        console.log('Refresh token is not active (might be revoked)', {
+            token,
+            revoked: refreshToken.revoked,
+            replacedByToken: refreshToken.replacedByToken
+        });
+        throw 'Token revoked';
+    }
+    
     return refreshToken;
 }
 

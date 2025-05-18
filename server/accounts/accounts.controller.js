@@ -54,14 +54,26 @@ function authenticate(req, res, next) {
 }
 
 function refreshToken(req, res, next) {
+    console.log('Refresh token request received', {
+        cookies: req.cookies,
+        headers: req.headers
+    });
+
     const token = req.cookies.refreshToken;
+    if (!token) {
+        return res.status(400).json({ message: 'Refresh token required' });
+    }
+
     const ipAddress = req.ip;
     accountService.refreshToken({ token, ipAddress })
         .then(({ refreshToken, ...account }) => {
             setTokenCookie(res, refreshToken);
             res.json(account);
         })
-        .catch(next);
+        .catch(error => {
+            console.log('Refresh token error:', error);
+            res.status(400).json({ message: error });
+        });
 }
 
 function revokeTokenSchema(req, res, next) {
@@ -265,7 +277,10 @@ function setTokenCookie(res, token) {
     // create cookie with refresh token that expires in 7 days
     const cookieOptions = {
         httpOnly: true,
-        expires: new Date(Date.now() + 7*24*60*60*1000)
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        expires: new Date(Date.now() + 7*24*60*60*1000),
+        path: '/'
     };
     res.cookie('refreshToken', token, cookieOptions);
 } 

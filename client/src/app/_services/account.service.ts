@@ -46,19 +46,22 @@ export class AccountService {
         this.stopRefreshTokenTimer();
         this.accountSubject.next(null);
         this.router.navigate(['/account/login']);
-    }
-      refreshToken() {
+    }    refreshToken() {
         console.log('AccountService - Refreshing token');
-        return this.http.post<Account>(`${baseUrl}/refresh-token`, {}, { withCredentials: true })
-            .pipe(map((account) => {
-                if (!account) {
-                    this.logout();
-                    return null;
-                }
-                this.accountSubject.next(account);
-                this.startRefreshTokenTimer();
-                return account;
-            }));
+        return this.http.post<Account>(`${baseUrl}/refresh-token`, {}, { 
+            withCredentials: true,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }).pipe(map((account) => {
+            if (!account) {
+                this.logout();
+                return null;
+            }
+            this.accountSubject.next(account);
+            this.startRefreshTokenTimer();
+            return account;
+        }));
     }
       register(account: Account) {
         console.log('AccountService - Registering account:', account);
