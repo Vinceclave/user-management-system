@@ -46,10 +46,30 @@ async function initialize() {
         // init models and add them to the exported db object
         db.Account = require('../accounts/account.model')(sequelize);
         db.RefreshToken = require('../accounts/refresh-token.model')(sequelize);
+        db.Department = require('../departments/department.model')(sequelize);
+        db.Employee = require('../employees/employee.model')(sequelize);
+        db.Workflow = require('../workflows/workflow.model')(sequelize);
+        db.WorkflowStep = require('../workflows/workflow-step.model')(sequelize);
+        db.Request = require('../requests/request.model')(sequelize);
 
         // define relationships
         db.Account.hasMany(db.RefreshToken, { onDelete: 'CASCADE' });
         db.RefreshToken.belongsTo(db.Account);
+        
+        db.Account.hasOne(db.Employee);
+        db.Employee.belongsTo(db.Account);
+        
+        db.Department.hasMany(db.Employee, { onDelete: 'SET NULL' });
+        db.Employee.belongsTo(db.Department);
+        
+        db.Employee.hasMany(db.Workflow);
+        db.Workflow.belongsTo(db.Employee);
+        
+        db.Workflow.hasMany(db.WorkflowStep, { as: 'workflowSteps', foreignKey: 'workflowId', onDelete: 'CASCADE' });
+        db.WorkflowStep.belongsTo(db.Workflow);
+        
+        db.Employee.hasMany(db.Request);
+        db.Request.belongsTo(db.Employee);
 
         // sync all models with database
         await sequelize.sync({ alter: true });
@@ -62,4 +82,4 @@ async function initialize() {
         }
         process.exit(1);
     }
-} 
+}
