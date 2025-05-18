@@ -21,21 +21,27 @@ export class JwtInterceptor implements HttpInterceptor {
             isApiUrl,
             url: request.url,
             headers: request.headers.keys()
-        });        // For API requests, always include credentials
+        });
+        
+        // For API requests, always include credentials
         if (isApiUrl) {
-            request = request.clone({
+            let clonedRequest = request.clone({
                 withCredentials: true
             });
 
             // Add authorization header if logged in
             if (isLoggedIn) {
-                request = request.clone({
-                    setHeaders: { Authorization: `Bearer ${account.jwtToken}` }
+                clonedRequest = clonedRequest.clone({
+                    setHeaders: { 
+                        'Authorization': `Bearer ${account.jwtToken}`,
+                        'Content-Type': 'application/json'
+                    }
                 });
-                console.log('Added Authorization header:', request.headers.get('Authorization'));
+                console.log('Added Authorization header:', clonedRequest.headers.get('Authorization'));
             }
             
             console.log('Set withCredentials to true for API request');
+            request = clonedRequest;
         }
 
         return next.handle(request);
