@@ -31,7 +31,10 @@ export class AccountService {
         console.log('AccountService - Attempting login for:', email);
         return this.http.post<Account>(`${baseUrl}/authenticate`, { email, password }, { 
             withCredentials: true,
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
         }).pipe(map(account => {
             console.log('AccountService - Login successful:', account);
             this.accountSubject.next(account);
@@ -51,13 +54,16 @@ export class AccountService {
         return this.http.post<Account>(`${baseUrl}/refresh-token`, {}, { 
             withCredentials: true,
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
             }
         }).pipe(map((account) => {
             if (!account) {
+                console.log('No account returned from refresh token request');
                 this.logout();
                 return null;
             }
+            console.log('Account refreshed successfully');
             this.accountSubject.next(account);
             this.startRefreshTokenTimer();
             return account;

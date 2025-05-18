@@ -2,19 +2,25 @@ import { AccountService } from '@app/_services';
 
 export function appInitializer(accountService: AccountService) {
   return () => new Promise(resolve => {
-    // attempt to refresh token on app start up to auto authenticate
-    // Note: We try to refresh token regardless of accountValue state
-    // since the refresh token is stored in an HTTP-only cookie
+    console.log('Application initializing, attempting token refresh');
+    
+    // Attempt to refresh token on app start up to auto authenticate
+    // Since the refresh token is stored in an HTTP-only cookie
     accountService.refreshToken()
       .subscribe({
-        next: () => {
-          console.log('Token refresh successful');
+        next: (account) => {
+          console.log('Token refresh successful - user authenticated:', account?.email);
           resolve(true);
         },
         error: (error) => {
           // If refresh fails, just continue without a token
-          console.log('Token refresh failed:', error);
-          console.log('Proceeding with unauthenticated state');
+          console.log('Token refresh failed - this is normal for new users or expired sessions');
+          
+          // Don't show error message for standard auth flow
+          if (error !== 'No refresh token found' && error !== 'Invalid token') {
+            console.error('Unexpected error during token refresh:', error);
+          }
+          
           resolve(true);
         }
       });

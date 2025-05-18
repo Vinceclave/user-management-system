@@ -62,23 +62,27 @@ function authenticate(req, res, next) {
 function refreshToken(req, res, next) {
     console.log('Refresh token request received', {
         cookies: req.cookies,
-        headers: req.headers
+        origin: req.headers.origin,
+        referer: req.headers.referer,
+        host: req.headers.host
     });
 
-    const token = req.cookies.refreshToken;
+    const token = req.cookies.refreshToken || req.body.refreshToken;
     if (!token) {
-        return res.status(400).json({ message: 'Refresh token required' });
+        console.log('No refresh token found in request');
+        return res.status(400).json({ message: 'No refresh token found' });
     }
 
     const ipAddress = req.ip;
     accountService.refreshToken({ token, ipAddress })
         .then(({ refreshToken, ...account }) => {
+            console.log('Refresh token success, setting new cookie');
             setTokenCookie(res, refreshToken);
             res.json(account);
         })
         .catch(error => {
             console.log('Refresh token error:', error);
-            res.status(400).json({ message: error });
+            res.status(400).json({ message: typeof error === 'string' ? error : 'Invalid token' });
         });
 }
 
@@ -283,12 +287,12 @@ function setTokenCookie(res, token) {
     // create cookie with refresh token that expires in 7 days
     const cookieOptions = {
         httpOnly: true,
-        secure: false, // set to false for development
-        sameSite: 'lax', // changed to lax for development
+        secure: true, // set to true for cloud workstations which uses HTTPS
+        sameSite: 'none', // needed for cross-subdomain requests in cloud environment
         expires: new Date(Date.now() + 7*24*60*60*1000),
-        path: '/',
-        domain: 'localhost'
+        path: '/'
+        // Don't set domain - let the browser determine this based on the request
     };
-    console.log('Setting refresh token cookie:', { token, cookieOptions });
+    console.log('Setting refresh token cookie:', { token });
     res.cookie('refreshToken', token, cookieOptions);
 } 
