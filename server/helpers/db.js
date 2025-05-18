@@ -9,7 +9,11 @@ initialize();
 async function initialize() {
     try {
         // create db if it doesn't already exist
-        const { host, port, user, password, database } = config.database;
+        const host = process.env.DB_HOST || config.database.host;
+        const port = process.env.DB_PORT || config.database.port;
+        const user = process.env.DB_USER || config.database.user;
+        const password = process.env.DB_PASSWORD || config.database.password;
+        const database = process.env.DB_NAME || config.database.database;
         
         console.log('Connecting to MySQL server...');
         const connection = await mysql.createConnection({
@@ -49,6 +53,7 @@ async function initialize() {
         db.Department = require('../departments/department.model')(sequelize);
         db.Employee = require('../employees/employee.model')(sequelize);
         db.Workflow = require('../workflows/workflow.model')(sequelize);
+        db.WorkflowStep = require('../workflows/workflow-step.model')(sequelize);
         db.Request = require('../requests/request.model')(sequelize);
 
         // define relationships
@@ -64,6 +69,9 @@ async function initialize() {
         db.Employee.hasMany(db.Workflow);
         db.Workflow.belongsTo(db.Employee);
         
+        db.Workflow.hasMany(db.WorkflowStep, { as: 'workflowSteps', foreignKey: 'workflowId', onDelete: 'CASCADE' });
+        db.WorkflowStep.belongsTo(db.Workflow);
+        
         db.Employee.hasMany(db.Request);
         db.Request.belongsTo(db.Employee);
 
@@ -78,4 +86,4 @@ async function initialize() {
         }
         process.exit(1);
     }
-} 
+}

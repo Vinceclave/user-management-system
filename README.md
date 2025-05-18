@@ -17,8 +17,11 @@ This project is a user management system built with Angular for the frontend, No
 2. **Install Dependencies**
    - **Frontend (Angular)**
 
-     > cd frontend
+     > cd client
      > npm install
+
+## Deployment
+This application can be deployed to Vercel. For detailed deployment instructions, see [VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md).
      
    - **Backend (Node.js + Express)**
      > cd backend

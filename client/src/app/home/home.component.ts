@@ -1,16 +1,11 @@
 import { Component, OnInit } from '@angular/core';
-import { first } from 'rxjs/operators';
-import { Account } from '@app/_models';
-import { AccountService } from '@app/_services';
-import { DepartmentService } from '@app/_services/department.service';
-import { EmployeeService } from '@app/_services/employee.service';
-import { WorkflowService } from '@app/_services/workflow.service';
-import { RequestService } from '@app/_services/request.service';
-import { Department } from '@app/_models/department.model';
-import { Employee } from '@app/_models/employee.model';
-import { Workflow } from '@app/_models/workflow.model';
-import { Request } from '@app/_models/request.model';
-import { RequestStatus } from '@app/_models/request.model';
+import { Router } from '@angular/router';
+import { EmployeeService } from '../admin/services/employee.service';
+import { RequestService } from '../admin/services/request.service';
+import { DepartmentService } from '../admin/services/department.service';
+import { Employee } from '../admin/models/employee.model';
+import { Request, RequestStatus } from '../admin/models/request.model';
+import { Department } from '../admin/models/department.model';
 
 @Component({
     selector: 'app-home',
@@ -18,96 +13,120 @@ import { RequestStatus } from '@app/_models/request.model';
     styleUrls: ['./home.component.less']
 })
 export class HomeComponent implements OnInit {
-    account: Account;
-    departments: Department[] = [];
     employees: Employee[] = [];
-    workflows: Workflow[] = [];
     requests: Request[] = [];
-    recentRequests: Request[] = [];
     pendingRequests: Request[] = [];
+    departments: Department[] = [];
+    loading = false;
+    error = '';
     isSidebarCollapsed = false;
-    isSidebarVisible = false;
 
     constructor(
-        private accountService: AccountService,
-        private departmentService: DepartmentService,
         private employeeService: EmployeeService,
-        private workflowService: WorkflowService,
-        private requestService: RequestService
-    ) {
-        this.account = this.accountService.accountValue;
+        private requestService: RequestService,
+        private departmentService: DepartmentService,
+        private router: Router
+    ) { }
+
+    ngOnInit(): void {
+        this.loadEmployees();
+        this.loadRequests();
+        this.loadDepartments();
     }
 
-    ngOnInit() {
-        this.loadData();
-        this.checkScreenSize();
-        window.addEventListener('resize', () => this.checkScreenSize());
+    refreshData(): void {
+        this.loadEmployees();
+        this.loadRequests();
+        this.loadDepartments();
     }
 
-    loadData() {
-        // Load departments
-        this.departmentService.getAll().subscribe(departments => {
-            this.departments = departments;
-        });
-
-        // Load employees
-        this.employeeService.getAll().subscribe(employees => {
-            this.employees = employees;
-        });
-
-        // Load workflows
-        this.workflowService.getAll().subscribe(workflows => {
-            this.workflows = workflows;
-        });
-
-        // Load requests
-        this.requestService.getAll().subscribe(requests => {
-            this.requests = requests;
-            this.pendingRequests = requests.filter(r => r.status === RequestStatus.PENDING);
-            this.recentRequests = requests
-                .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                .slice(0, 5);
+    loadEmployees(): void {
+        this.loading = true;
+        this.employeeService.getAll().subscribe({
+            next: (employees) => {
+                this.employees = employees;
+                this.loading = false;
+            },
+            error: (error) => {
+                this.error = 'Error loading employees';
+                this.loading = false;
+                console.error('Error loading employees:', error);
+            }
         });
     }
 
-    getEmployeeName(employeeId: number): string {
-        const employee = this.employees.find(e => e.id === employeeId);
-        return employee ? `${employee.firstName} ${employee.lastName}` : 'Unknown Employee';
+    loadRequests(): void {
+        this.loading = true;
+        this.requestService.getAll().subscribe({
+            next: (requests) => {
+                this.requests = requests;
+                this.pendingRequests = requests.filter(r => r.status === RequestStatus.Pending);
+                this.loading = false;
+            },
+            error: (error) => {
+                this.error = 'Error loading requests';
+                this.loading = false;
+                console.error('Error loading requests:', error);
+            }
+        });
+    }
+
+    loadDepartments(): void {
+        this.loading = true;
+        this.departmentService.getAll().subscribe({
+            next: (departments) => {
+                this.departments = departments;
+                this.loading = false;
+            },
+            error: (error) => {
+                this.error = 'Error loading departments';
+                this.loading = false;
+                console.error('Error loading departments:', error);
+            }
+        });
+    }
+
+    getStatusClass(status: RequestStatus): string {
+        switch (status) {
+            case RequestStatus.Pending:
+                return 'bg-warning';
+            case RequestStatus.InProgress:
+                return 'bg-info';
+            case RequestStatus.Completed:
+                return 'bg-success';
+            case RequestStatus.Rejected:
+                return 'bg-danger';
+            default:
+                return 'bg-light';
+        }
+    }
+
+    getStatusText(status: RequestStatus): string {
+        switch (status) {
+            case RequestStatus.Pending:
+                return 'Pending';
+            case RequestStatus.InProgress:
+                return 'In Progress';
+            case RequestStatus.Completed:
+                return 'Completed';
+            case RequestStatus.Rejected:
+                return 'Rejected';
+            default:
+                return 'Unknown';
+        }
     }
 
     getEmployeeCount(departmentId: number): number {
-        return this.employees.filter(e => e.departmentId === departmentId).length;
+        return this.employees.filter(emp => emp.departmentId === departmentId).length;
     }
 
-    getStatusClass(status: string): string {
-        switch (status) {
-            case RequestStatus.PENDING:
-                return 'text-warning';
-            case RequestStatus.APPROVED:
-                return 'text-success';
-            case RequestStatus.REJECTED:
-                return 'text-danger';
-            case RequestStatus.CANCELLED:
-                return 'text-secondary';
-            default:
-                return 'text-primary';
-        }
+    getDepartmentEmployeePercentage(departmentId: number): number {
+        if (this.employees.length === 0) return 0;
+        const count = this.getEmployeeCount(departmentId);
+        return Math.round((count / this.employees.length) * 100);
     }
 
-    private checkScreenSize() {
-        if (window.innerWidth <= 767.98) {
-            this.isSidebarCollapsed = true;
-            this.isSidebarVisible = false;
-        } else {
-            this.isSidebarCollapsed = false;
-            this.isSidebarVisible = true;
-        }
-    }
-
-    toggleSidebar() {
-        this.isSidebarCollapsed = !this.isSidebarCollapsed;
-        if (window.innerWidth <= 767.98) {
-            this.isSidebarVisible = !this.isSidebarVisible;
-        }
+    viewRequest(id: number): void {
+        this.router.navigate(['/requests/view', id]);
     }
 }
