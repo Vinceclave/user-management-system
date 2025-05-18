@@ -12,14 +12,8 @@ app.use(cookieParser());
 
 // allow cors requests from any origin and with credentials
 app.use(cors({
-    origin: function(origin, callback) {
-        // allow requests from any origin in development
-        callback(null, origin || 'http://localhost:4200');
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-    exposedHeaders: ['Set-Cookie']
+   origin: 'http://localhost:4200',
+   credentials: true,
 }));
 
 // api routes

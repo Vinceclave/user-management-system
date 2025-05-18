@@ -7,26 +7,18 @@ import { AccountService } from '@app/_services';
 
 @Injectable()
 export class ErrorInterceptor implements HttpInterceptor {
-    constructor(private accountService: AccountService) { }    intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-        return next.handle(request).pipe(catchError(err => {
-            console.log('Error interceptor caught error:', {
-                status: err.status,
-                url: request.url,
-                error: err.error,
-                isRefreshRequest: request.url.includes('refresh-token')
-            });
+    constructor(private accountService: AccountService) { }
 
-            if ([401, 403].includes(err.status)) {
-                // Only handle 401s for non-refresh-token requests
-                if (!request.url.includes('refresh-token') && this.accountService.accountValue) {
-                    // auto logout if 401 or 403 response returned from api
-                    this.accountService.logout();
-                }
+    intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+        return next.handle(request).pipe(catchError(err => {
+            if ([401, 403].includes(err.status) && this.accountService.accountValue) {
+                // auto logout if 401 or 403 response returned from api
+                this.accountService.logout();
             }
 
-            const error = err.error?.message || err.statusText || err.message || 'An error occurred';
-            console.error('Error details:', error);
-            return throwError(() => error);
+            const error = (err && err.error && err.error.message) || err.statusText;
+            console.error(error);
+            return throwError(error);
         }))
     }
 }

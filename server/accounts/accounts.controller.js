@@ -45,45 +45,23 @@ function authenticate(req, res, next) {
     const sanitizedEmail = sanitizeInput(email);
     const sanitizedPassword = sanitizeInput(password);
     const ipAddress = req.ip;
-    console.log('Authentication attempt:', { email: sanitizedEmail, ipAddress });
-    
     accountService.authenticate({ email: sanitizedEmail, password: sanitizedPassword, ipAddress })
         .then(({ refreshToken, ...account }) => {
-            console.log('Authentication successful, setting cookie');
             setTokenCookie(res, refreshToken);
             res.json(account);
         })
-        .catch(error => {
-            console.error('Authentication failed:', error);
-            next(error);
-        });
+        .catch(next);
 }
 
 function refreshToken(req, res, next) {
-    console.log('Refresh token request received', {
-        cookies: req.cookies,
-        origin: req.headers.origin,
-        referer: req.headers.referer,
-        host: req.headers.host
-    });
-
-    const token = req.cookies.refreshToken || req.body.refreshToken;
-    if (!token) {
-        console.log('No refresh token found in request');
-        return res.status(400).json({ message: 'No refresh token found' });
-    }
-
+    const token = req.cookies.refreshToken;
     const ipAddress = req.ip;
     accountService.refreshToken({ token, ipAddress })
         .then(({ refreshToken, ...account }) => {
-            console.log('Refresh token success, setting new cookie');
             setTokenCookie(res, refreshToken);
             res.json(account);
         })
-        .catch(error => {
-            console.log('Refresh token error:', error);
-            res.status(400).json({ message: typeof error === 'string' ? error : 'Invalid token' });
-        });
+        .catch(next);
 }
 
 function revokeTokenSchema(req, res, next) {
@@ -143,17 +121,8 @@ function verifyEmailSchema(req, res, next) {
 }
 
 function verifyEmail(req, res, next) {
-    const ipAddress = req.ip;
-    
-    accountService.verifyEmail({ ...req.body, ipAddress })
-        .then(({ refreshToken, ...account }) => {
-            console.log('Email verification successful, setting cookie');
-            setTokenCookie(res, refreshToken);
-            res.json({ 
-                ...account,
-                message: 'Verification successful, you are now logged in' 
-            });
-        })
+    accountService.verifyEmail(req.body)
+        .then(() => res.json({ message: 'Verification successful, you can now login' }))
         .catch(next);
 }
 
@@ -296,12 +265,7 @@ function setTokenCookie(res, token) {
     // create cookie with refresh token that expires in 7 days
     const cookieOptions = {
         httpOnly: true,
-        secure: true, // set to true for cloud workstations which uses HTTPS
-        sameSite: 'none', // needed for cross-subdomain requests in cloud environment
-        expires: new Date(Date.now() + 7*24*60*60*1000),
-        path: '/'
-        // Don't set domain - let the browser determine this based on the request
+        expires: new Date(Date.now() + 7*24*60*60*1000)
     };
-    console.log('Setting refresh token cookie:', { token });
     res.cookie('refreshToken', token, cookieOptions);
 } 

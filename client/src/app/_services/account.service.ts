@@ -27,20 +27,17 @@ export class AccountService {
         const value = this.accountSubject.value;
         console.log('AccountService - Getting account value:', value);
         return value;
-    }    login(email: string, password: string) {
+    }
+
+    login(email: string, password: string) {
         console.log('AccountService - Attempting login for:', email);
-        return this.http.post<Account>(`${baseUrl}/authenticate`, { email, password }, { 
-            withCredentials: true,
-            headers: { 
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        }).pipe(map(account => {
-            console.log('AccountService - Login successful:', account);
-            this.accountSubject.next(account);
-            this.startRefreshTokenTimer();
-            return account;
-        }));
+        return this.http.post<any>(`${baseUrl}/authenticate`, { email, password }, { withCredentials: true })
+            .pipe(map(account => {
+                console.log('AccountService - Login successful:', account);
+                this.accountSubject.next(account);
+                this.startRefreshTokenTimer();
+                return account;
+            }));
     }
 
     logout() {
@@ -49,25 +46,17 @@ export class AccountService {
         this.stopRefreshTokenTimer();
         this.accountSubject.next(null);
         this.router.navigate(['/account/login']);
-    }    refreshToken() {
+    }
+    
+    refreshToken() {
         console.log('AccountService - Refreshing token');
-        return this.http.post<Account>(`${baseUrl}/refresh-token`, {}, { 
-            withCredentials: true,
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        }).pipe(map((account) => {
-            if (!account) {
-                console.log('No account returned from refresh token request');
-                this.logout();
-                return null;
-            }
-            console.log('Account refreshed successfully');
-            this.accountSubject.next(account);
-            this.startRefreshTokenTimer();
-            return account;
-        }));
+        return this.http.post<any>(`${baseUrl}/refresh-token`, {}, { withCredentials: true })
+            .pipe(map((account) => {
+                console.log('AccountService - Token refreshed:', account);
+                this.accountSubject.next(account);
+                this.startRefreshTokenTimer();
+                return account;
+            }));
     }
       register(account: Account) {
         console.log('AccountService - Registering account:', account);
@@ -82,111 +71,55 @@ export class AccountService {
                 return response;
             }));
     }
+    
     verifyEmail(token: string) {
-        return this.http.post<any>(`${baseUrl}/verify-email`, { token }, {
-            withCredentials: true,
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        }).pipe(map((response: any) => {
-            // If we get back an account with JWT token, update the account state
-            if (response && response.jwtToken) {
-                console.log('Verification successful with auto-login', response);
-                this.accountSubject.next(response);
-                this.startRefreshTokenTimer();
-            }
-            return response;
-        }));
+        return this.http.post(`${baseUrl}/verify-email`, { token });
     }
-      forgotPassword(email: string) {
-        return this.http.post(`${baseUrl}/forgot-password`, { email }, {
-            withCredentials: true,
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        });
+    
+    forgotPassword(email: string) {
+        return this.http.post(`${baseUrl}/forgot-password`, { email });
     }
     
     validateResetToken(token: string) {
-        return this.http.post(`${baseUrl}/validate-reset-token`, { token }, {
-            withCredentials: true,
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        });
+        return this.http.post(`${baseUrl}/validate-reset-token`, { token });
     }
     
     resetPassword(token: string, password: string, confirmPassword: string) {
-        return this.http.post(`${baseUrl}/reset-password`, { token, password, confirmPassword }, {
-            withCredentials: true,
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        });
+        return this.http.post(`${baseUrl}/reset-password`, { token, password, confirmPassword });
     }
-      getAll() {
-        return this.http.get<Account[]>(baseUrl, {
-            withCredentials: true,
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        });
+    
+    getAll() {
+        return this.http.get<Account[]>(baseUrl);
     }
     
     getById(id: string) {
-        return this.http.get<Account>(`${baseUrl}/${id}`, {
-            withCredentials: true, 
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        });
+        return this.http.get<Account>(`${baseUrl}/${id}`);
     }
     
     create(params) {
-        return this.http.post(baseUrl, params, {
-            withCredentials: true,
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        });
-      update(id, params) {
-        return this.http.put(`${baseUrl}/${id}`, params, {
-            withCredentials: true,
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
+        return this.http.post(baseUrl, params);
+    }
+    
+    update(id, params) {
+        return this.http.put(`${baseUrl}/${id}`, params)
             .pipe(map((account: any) => {
-                // update the current account if it was updated
-                if (account.id === this.accountValue.id) {
-                    // publish updated account to subscribers
-                    account = { ...this.accountValue, ...account };
-                    this.accountSubject.next(account);
-                }
-                return account;
+            // update the current account if it was updated
+            if (account.id === this.accountValue.id) {
+                // publish updated account to subscribers
+                account = { ...this.accountValue, ...account };
+                this.accountSubject.next(account);
+            }
+            return account;
             }));
     }
     
     delete(id: string) {
-        return this.http.delete(`${baseUrl}/${id}`, {
-            withCredentials: true,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
+        return this.http.delete(`${baseUrl}/${id}`)
             .pipe(finalize(() => {
-                // auto logout if the logged-in account was deleted
-                if (id === this.accountValue.id) {
-                    this.logout();
-                }
+            // auto logout if the logged-in account was deleted
+            if (id === this.accountValue.id) {
+                this.logout();
+            }
             }));
     }
     
