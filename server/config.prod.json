@@ -1,0 +1,19 @@
+{
+  "database": {
+    "host": "PLACEHOLDER_HOST",
+    "port": 3306,
+    "user": "PLACEHOLDER_USER",
+    "password": "PLACEHOLDER_PASSWORD",
+    "database": "PLACEHOLDER_DATABASE"
+  },
+  "secret": "PLACEHOLDER_SECRET",
+  "emailFrom": "PLACEHOLDER_EMAIL",
+  "smtpOptions": {
+    "host": "PLACEHOLDER_SMTP_HOST",
+    "port": 587,
+    "auth": {
+      "user": "PLACEHOLDER_SMTP_USER",
+      "pass": "PLACEHOLDER_SMTP_PASS"
+    }
+  }
+}
