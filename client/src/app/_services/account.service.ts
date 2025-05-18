@@ -47,12 +47,14 @@ export class AccountService {
         this.accountSubject.next(null);
         this.router.navigate(['/account/login']);
     }
-    
-    refreshToken() {
+      refreshToken() {
         console.log('AccountService - Refreshing token');
-        return this.http.post<any>(`${baseUrl}/refresh-token`, {}, { withCredentials: true })
+        return this.http.post<Account>(`${baseUrl}/refresh-token`, {}, { withCredentials: true })
             .pipe(map((account) => {
-                console.log('AccountService - Token refreshed:', account);
+                if (!account) {
+                    this.logout();
+                    return null;
+                }
                 this.accountSubject.next(account);
                 this.startRefreshTokenTimer();
                 return account;

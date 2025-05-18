@@ -14,18 +14,20 @@ export class JwtInterceptor implements HttpInterceptor {
         const account = this.accountService.accountValue;
         const isLoggedIn = account && account.jwtToken;
         const isApiUrl = request.url.startsWith(environment.apiUrl);
-        
+          const refreshing = request.url.endsWith('/refresh-token');
         console.log('JWT Interceptor:', {
             account,
             isLoggedIn,
             isApiUrl,
             url: request.url,
+            refreshing,
             headers: request.headers.keys()
         });
 
         if (isLoggedIn && isApiUrl) {
             request = request.clone({
-                setHeaders: { Authorization: `Bearer ${account.jwtToken}` }
+                setHeaders: { Authorization: `Bearer ${account.jwtToken}` },
+                withCredentials: true
             });
             console.log('Added Authorization header:', request.headers.get('Authorization'));
         }
