@@ -54,8 +54,13 @@ function authenticate(req, res, next) {
 }
 
 function refreshToken(req, res, next) {
-    const token = req.cookies.refreshToken;
+    const token = req.cookies.refreshToken || req.body.refreshToken;
     const ipAddress = req.ip;
+    
+    if (!token) {
+        return res.status(400).json({ message: 'Token is required' });
+    }
+    
     accountService.refreshToken({ token, ipAddress })
         .then(({ refreshToken, ...account }) => {
             setTokenCookie(res, refreshToken);
@@ -265,7 +270,9 @@ function setTokenCookie(res, token) {
     // create cookie with refresh token that expires in 7 days
     const cookieOptions = {
         httpOnly: true,
-        expires: new Date(Date.now() + 7*24*60*60*1000)
+        expires: new Date(Date.now() + 7*24*60*60*1000),
+        sameSite: 'none',
+        secure: true
     };
     res.cookie('refreshToken', token, cookieOptions);
 } 
