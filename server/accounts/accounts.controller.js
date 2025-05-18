@@ -45,12 +45,18 @@ function authenticate(req, res, next) {
     const sanitizedEmail = sanitizeInput(email);
     const sanitizedPassword = sanitizeInput(password);
     const ipAddress = req.ip;
+    console.log('Authentication attempt:', { email: sanitizedEmail, ipAddress });
+    
     accountService.authenticate({ email: sanitizedEmail, password: sanitizedPassword, ipAddress })
         .then(({ refreshToken, ...account }) => {
+            console.log('Authentication successful, setting cookie');
             setTokenCookie(res, refreshToken);
             res.json(account);
         })
-        .catch(next);
+        .catch(error => {
+            console.error('Authentication failed:', error);
+            next(error);
+        });
 }
 
 function refreshToken(req, res, next) {
@@ -277,10 +283,12 @@ function setTokenCookie(res, token) {
     // create cookie with refresh token that expires in 7 days
     const cookieOptions = {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        secure: false, // set to false for development
+        sameSite: 'lax', // changed to lax for development
         expires: new Date(Date.now() + 7*24*60*60*1000),
-        path: '/'
+        path: '/',
+        domain: 'localhost'
     };
+    console.log('Setting refresh token cookie:', { token, cookieOptions });
     res.cookie('refreshToken', token, cookieOptions);
 } 

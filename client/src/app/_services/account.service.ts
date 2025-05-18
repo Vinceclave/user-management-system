@@ -27,17 +27,17 @@ export class AccountService {
         const value = this.accountSubject.value;
         console.log('AccountService - Getting account value:', value);
         return value;
-    }
-
-    login(email: string, password: string) {
+    }    login(email: string, password: string) {
         console.log('AccountService - Attempting login for:', email);
-        return this.http.post<any>(`${baseUrl}/authenticate`, { email, password }, { withCredentials: true })
-            .pipe(map(account => {
-                console.log('AccountService - Login successful:', account);
-                this.accountSubject.next(account);
-                this.startRefreshTokenTimer();
-                return account;
-            }));
+        return this.http.post<Account>(`${baseUrl}/authenticate`, { email, password }, { 
+            withCredentials: true,
+            headers: { 'Content-Type': 'application/json' }
+        }).pipe(map(account => {
+            console.log('AccountService - Login successful:', account);
+            this.accountSubject.next(account);
+            this.startRefreshTokenTimer();
+            return account;
+        }));
     }
 
     logout() {
