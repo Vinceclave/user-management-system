@@ -25,11 +25,15 @@ export class UpdateComponent implements OnInit {
 
     ngOnInit() {
         this.account = this.accountService.accountValue;
+        const title = this.account ? this.account.title : '';
+        const firstName = this.account ? this.account.firstName : '';
+        const lastName = this.account ? this.account.lastName : '';
+        const email = this.account ? this.account.email : '';
         this.form = this.formBuilder.group({
-            title: [this.account.title, Validators.required],
-            firstName: [this.account.firstName, Validators.required],
-            lastName: [this.account.lastName, Validators.required],
-            email: [this.account.email, [Validators.required, Validators.email]],
+            title: [title, Validators.required],
+            firstName: [firstName, Validators.required],
+            lastName: [lastName, Validators.required],
+            email: [email, [Validators.required, Validators.email]],
             password: ['', [Validators.minLength(6)]],
             confirmPassword: ['']
         }, {

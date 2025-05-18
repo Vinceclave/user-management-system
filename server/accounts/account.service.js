@@ -232,15 +232,15 @@ async function hash(password) {
 }
 
 function generateJwtToken(account) {
-    // create a jwt token containing the account id that expires in 15 minutes
+    // create a jwt token containing the account id that expires in 24 hours
     return jwt.sign(
         { 
             sub: account.id,
             id: account.id,
             role: account.role
         }, 
-        config.secret, 
-        { expiresIn: '15m' }
+        process.env.JWT_SECRET || config.secret, 
+        { expiresIn: '24h' }
     );
 }
 
@@ -259,8 +259,10 @@ function randomTokenString() {
 }
 
 function basicDetails(account) {
-    const { id, title, firstName, lastName, email, role, created, updated, isVerified } = account;
-    return { id, title, firstName, lastName, email, role, created, updated, isVerified };
+    const { id, title, firstName, lastName, email, role, created, updated, isVerified, isActive } = account;
+    // If isActive is undefined (for older records), default it to true
+    const accountIsActive = isActive === undefined ? true : isActive;
+    return { id, title, firstName, lastName, email, role, created, updated, isVerified, isActive: accountIsActive };
 }
 
 async function sendVerificationEmail(account, origin) {

@@ -1,5 +1,5 @@
 <h1>Update Profile</h1>
-<form [formGroup]="form" (ngSubmit)="onSubmit()">
+<form *ngIf="form" [formGroup]="form" (ngSubmit)="onSubmit()">
     <div class="form-row">
         <div class="form-group col">
         <label>Title</label>

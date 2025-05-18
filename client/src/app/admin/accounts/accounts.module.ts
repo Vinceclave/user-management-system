@@ -1,20 +1,25 @@
 import { NgModule } from '@angular/core';
-import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule } from '@angular/forms';
+import { RouterModule, Routes } from '@angular/router';
+import { AccountListComponent } from './account-list/account-list.component';
+import { AccountFormComponent } from './account-form/account-form.component';
 
-import { AccountsRoutingModule } from './accounts-routing.module';
-import { ListComponent } from './list.component';
-import { AddEditComponent } from './add-edit.component';
+const routes: Routes = [
+    { path: '', component: AccountListComponent },
+    { path: 'add', component: AccountFormComponent },
+    { path: 'edit/:id', component: AccountFormComponent }
+];
 
 @NgModule({
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    AccountsRoutingModule
-  ],
-  declarations: [
-    ListComponent,
-    AddEditComponent
-  ]
+    declarations: [
+        AccountListComponent,
+        AccountFormComponent
+    ],
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        RouterModule.forChild(routes)
+    ]
 })
 export class AccountsModule { }
