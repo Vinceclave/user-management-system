@@ -17,10 +17,6 @@
 /client/dist
 
 # Environment variables
-.env
-.env.local
-.env.development
-.env.production
 /server/.env
 /server/.env.*
 
@@ -31,7 +27,6 @@
 /client/.angular/cache
 
 # IDE - VSCode
-.vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
@@ -46,8 +41,6 @@
 
 # Misc
 .DS_Store
-.env
-.env.local
 .env.development.local
 .env.test.local
 .env.production.local
@@ -76,11 +69,9 @@ desktop.ini
 .yarn-integrity
 
 # dotenv environment variable files
-.env
 .env.development.local
 .env.test.local
 .env.production.local
-.env.local
 
 # parcel-bundler cache
 .cache
@@ -123,3 +114,4 @@ public
 .yarn/install-state.gz
 .pnp.* 
 .vercel
+config.bat
