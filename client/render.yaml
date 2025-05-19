@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: user-management-client
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist/client
+    env: static
+    buildFilter:
+      paths:
+        - src/**
+        - package.json
+    envVars:
+      - key: NODE_VERSION
+        value: 18

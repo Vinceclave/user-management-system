@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: user-management-api
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: DATABASE_HOST
+        value: 153.92.15.31
+      - key: DATABASE_PORT
+        value: 3306
+      - key: DATABASE_USER
+        value: u875409848_cabusao
+      - key: DATABASE_NAME
+        value: u875409848_cabusao
+      - key: JWT_SECRET
+        value: mrbeans-secure-jwt-secret-key-2024
+      - key: NODE_ENV
+        value: production
