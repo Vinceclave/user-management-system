@@ -24,34 +24,35 @@ module.exports = {
 };
 
 async function authenticate({ email, password, ipAddress }) {
-    const account = await db.Account.scope('withHash').findOne({ where: { email } });
+    try {
+        const account = await db.Account.scope('withHash').findOne({ where: { email } });
 
-    if (!account) {
-        throw 'Email is not registered';
+        if (!account) {
+            throw 'Email or password is incorrect';
+        }
+
+        if (!account.isVerified) {
+            throw 'Please verify your email first';
+        }
+
+        const isValid = await bcrypt.compare(password, account.passwordHash);
+        if (!isValid) {
+            throw 'Email or password is incorrect';
+        }
+
+        const jwtToken = generateJwtToken(account);
+        const refreshToken = await generateRefreshToken(account, ipAddress);
+        await refreshToken.save();
+
+        return {
+            ...basicDetails(account),
+            jwtToken,
+            refreshToken: refreshToken.token
+        };
+    } catch (error) {
+        console.error('Authentication error:', error);
+        throw error;
     }
-
-    if (!account.isVerified) {
-        throw 'Email is not verified';
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, account.passwordHash);
-    if (!isPasswordValid) {
-        throw 'Password is incorrect';
-    }
-
-    // authentication successful so generate jwt and refresh tokens
-    const jwtToken = generateJwtToken(account);
-    const refreshToken = await generateRefreshToken(account, ipAddress);
-
-    // save refresh token
-    await refreshToken.save();
-
-    // return basic details and tokens
-    return {
-        ...basicDetails(account),
-        jwtToken,
-        refreshToken: refreshToken.token
-    };
 }
 
 async function refreshToken({ token, ipAddress }) {
