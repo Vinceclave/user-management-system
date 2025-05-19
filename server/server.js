@@ -12,7 +12,7 @@ app.use(cookieParser());
 
 // allow cors requests from any origin and with credentials
 app.use(cors({
-    origin: ['https://user-management-client.onrender.com', 'http://localhost:4200'],
+    origin: ['https://user-management-api-g57v.onrender.com', 'http://localhost:4200'],
     credentials: true
 }));
 
