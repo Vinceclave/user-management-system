@@ -1,5 +1,4 @@
 require('rootpath')();
-require('dotenv').config();
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
@@ -27,40 +26,25 @@ app.get('/', (req, res) => {
     });
 });
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'ok' });
-});
-
-// allow cors requests from any origin and with credentials
+// CORS configuration
 app.use(cors({
-    origin: 'https://user-management-system-atns.onrender.com',
-   credentials: true,
+    origin: process.env.CLIENT_URL || 'https://user-management-system-atns.onrender.com',
+    credentials: true
 }));
 
-// api routes
+// API routes
 app.use('/accounts', require('./accounts/accounts.controller'));
 app.use('/departments', require('./departments'));
 app.use('/employees', require('./employees'));
 app.use('/workflows', require('./workflows'));
 app.use('/requests', require('./requests'));
-
-// swagger docs route
 app.use('/api-docs', require('./helpers/swagger'));
 
-// Fallback route handler
-app.use('*', (req, res) => {
-    res.status(404).json({ 
-        error: 'Not Found',
-        message: 'The requested resource does not exist'
-    });
-});
-
-// global error handler
+// Global error handler
 app.use(errorHandler);
 
-// start server
-const port = process.env.NODE_ENV === 'production' ? (process.env.PORT || 80) : 4000;
+// Start server
+const port = process.env.PORT || 3000;
 app.listen(port, () => {
     console.log('Server listening on port ' + port);
-}); 
+});
