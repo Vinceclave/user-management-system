@@ -1,5 +1,5 @@
 export const environment = {
     production: true,
-    apiUrl: 'https://user-management-system-rx2k.onrender.com/',
-    useFakeBackend: false
+    apiUrl: 'http://localhost:4000',
+    useFakeBackend: false // Always use real backend in production
 };

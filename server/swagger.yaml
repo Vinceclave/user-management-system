@@ -4,7 +4,7 @@ info:
   description: Node.js + MySQL API for Email Sign Up with Verification, Authentication & Forgot Password
   version: 1.0.0
 servers:
-  - url: https://user-management-api-g57v.onrender.com
+  - url: http://localhost:4000
     description: Development server
 paths:
   /accounts/authenticate:
